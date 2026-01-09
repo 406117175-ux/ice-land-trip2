@@ -3,343 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>冰島隨身助理 | Iceland Travel Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    <title>冰島隨身助理 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #2c3e50;
-            --accent-blue: #3498db;
-            --warning-red: #e74c3c;
-            --bg-light: #f4f7f6;
-            --text-dark: #2d3436;
-            --white: #ffffff;
-            --card-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --danger: #e74c3c;
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #2c3e50;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
-            margin: 0; padding-bottom: 80px; 
-            background: var(--bg-light); color: var(--text-dark);
+            margin: 0; background: var(--bg); color: var(--text);
             overflow-x: hidden;
         }
 
-        /* --- 頂部儀表板 --- */
+        /* SPA 架構與動畫 */
+        .page { 
+            display: none; padding: 20px 15px 100px; 
+            animation: fadeIn 0.4s ease-out; 
+        }
+        .page.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 頂部即時資訊儀表板 */
         .dashboard {
-            background: linear-gradient(135deg, var(--primary-blue), #1a252f);
-            color: white; padding: 20px;
-            border-radius: 0 0 25px 25px;
-            box-shadow: var(--card-shadow);
-            position: sticky; top: 0; z-index: 100;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white; padding: 20px; border-radius: 15px;
+            margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .weather-info { display: flex; justify-content: space-between; align-items: center; }
-        .temp-main { font-size: 2.5rem; font-weight: bold; }
-        
-        /* 暴風雪預警 [功能 2] */
+        /* 暴風雪防呆警示 [cite: 25, 26] */
         #storm-alert {
-            background: var(--warning-red); color: white;
-            padding: 10px; border-radius: 8px; margin-top: 10px;
-            display: none; animation: pulse 2s infinite;
-            font-weight: bold; text-align: center;
+            display: none; background: var(--danger); color: white;
+            padding: 10px; border-radius: 8px; margin-bottom: 15px;
+            border: 2px solid #fff; font-weight: bold; animation: pulse 2s infinite;
         }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
-        /* --- 行程切換導航 [功能 3, 6] --- */
-        .day-scroller {
-            display: flex; overflow-x: auto; padding: 15px 10px;
-            gap: 10px; scrollbar-width: none;
-        }
-        .day-scroller::-webkit-scrollbar { display: none; }
-        .day-btn {
-            flex: 0 0 auto; padding: 10px 20px;
-            background: var(--white); border-radius: 20px;
-            box-shadow: var(--card-shadow); border: none;
-            cursor: pointer; transition: var(--transition);
-        }
-        .day-btn.active { background: var(--accent-blue); color: white; transform: scale(1.1); }
-
-        /* --- 主要內容區 --- */
-        .content-area { padding: 15px; min-height: 60vh; }
-        
-        /* 卡片設計 [功能 1, 18] */
+        /* 行程卡片 [cite: 18, 20] */
         .card {
-            background: var(--white); border-radius: 15px;
-            overflow: hidden; margin-bottom: 20px;
-            box-shadow: var(--card-shadow);
-            animation: slideIn 0.4s ease-out; /* 點擊動畫 */
+            background: var(--card); border-radius: 12px; margin-bottom: 15px;
+            overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--accent);
         }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card-img { width: 100%; height: 180px; object-fit: cover; background: #ddd; }
-        .card-body { padding: 15px; }
-        .tag { font-size: 0.8rem; padding: 2px 8px; border-radius: 5px; margin-right: 5px; color: white; }
-        .tag-must { background: var(--warning-red); } /* 防呆警示 [功能 26] */
-        .tag-stay { background: #8e44ad; }
-        .tag-food { background: #27ae60; }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
-        .action-btn {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            background: #eee; text-align: center; text-decoration: none;
-            color: var(--text-dark); font-weight: bold; font-size: 0.9rem;
-        }
-        .btn-maps { background: #e8f5e9; color: #2e7d32; }
-
-        /* --- 溝通輔助 (手風琴) [功能 13, 14] --- */
-        .accordion { margin-top: 10px; }
-        details { background: white; margin-bottom: 10px; border-radius: 8px; padding: 10px; box-shadow: var(--card-shadow); }
-        summary { font-weight: bold; cursor: pointer; }
-        .phrase-item { 
-            padding: 12px; border-bottom: 1px solid #eee; 
-            display: flex; justify-content: space-between; align-items: center;
+        .card img { width: 100%; height: 180px; object-fit: cover; }
+        .card-content { padding: 15px; }
+        .tag { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #eee; margin-right: 5px; }
+        .btn-nav { 
+            display: inline-block; background: var(--accent); color: white;
+            padding: 8px 15px; border-radius: 20px; text-decoration: none;
+            margin-top: 10px; font-size: 14px;
         }
 
-        /* --- 全螢幕展示模式 [功能 15, 16] --- */
-        #focus-modal {
-            position: fixed; inset: 0; background: black;
-            display: none; flex-direction: column; justify-content: center;
-            align-items: center; color: white; z-index: 1000; padding: 40px;
-        }
-        #focus-text { font-size: 3.5rem; text-align: center; word-break: break-word; font-weight: bold; }
-        #focus-sub { font-size: 1.5rem; margin-top: 20px; color: #ccc; }
-        .close-modal { position: absolute; top: 30px; right: 30px; font-size: 2rem; color: white; }
-
-        /* --- 底部導航 [功能 6] --- */
+        /* 底部導航  */
         .bottom-nav {
             position: fixed; bottom: 0; width: 100%; height: 70px;
-            background: var(--white); display: flex; justify-content: space-around;
-            align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 500;
+            background: white; display: flex; justify-content: space-around;
+            align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
         }
-        .nav-item { border: none; background: none; text-align: center; font-size: 0.7rem; color: #7f8c8d; }
-        .nav-item i { display: block; font-size: 1.5rem; margin-bottom: 2px; }
-        .nav-item.active { color: var(--accent-blue); }
+        .nav-item { border: none; background: none; color: #95a5a6; font-size: 12px; cursor: pointer; }
+        .nav-item.active { color: var(--accent); font-weight: bold; }
 
-        /* --- 記帳本 [功能 28] --- */
-        .expense-container { background: white; padding: 20px; border-radius: 15px; }
-        .expense-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        
-        .hidden { display: none; }
+        /* 溝通圖卡 [cite: 14, 15] */
+        details { background: white; margin-bottom: 10px; border-radius: 8px; }
+        summary { padding: 15px; font-weight: bold; list-style: none; border-bottom: 1px solid #eee; }
+        .phrase-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+
+        /* 全螢幕模式 [cite: 16] */
+        #focus-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; color: white; z-index: 2000;
+            justify-content: center; align-items: center; text-align: center; padding: 20px;
+        }
+        #focus-modal h1 { font-size: 3rem; word-break: break-word; }
+
+        /* 記帳本 [cite: 28, 29] */
+        .expense-list { margin-top: 15px; }
+        .expense-item { display: flex; justify-content: space-between; padding: 10px; background: #fff; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="dashboard">
-        <div class="weather-info">
-            <div>
-                <div style="font-size: 0.9rem; opacity: 0.8;">Reykjavík, Iceland</div>
-                <div id="weather-status">☀️ Clear</div>
+    <div id="focus-modal" onclick="this.style.display='none'">
+        <div id="focus-text"></div>
+        <p style="margin-top: 20px; font-size: 14px; opacity: 0.6;">點擊任意處關閉</p>
+    </div>
+
+    <div id="page-home" class="page active">
+        <div class="dashboard">
+            <h2>冰島自駕助理 🇮🇸</h2>
+            <div id="storm-alert">⚠️ 偵測到強風警報！請勿開門以免車門損壞。</div>
+            <div id="weather-info">載入天氣中... ☀️</div>
+            <div style="margin-top: 15px; font-size: 14px;">
+                <p>🚗 租車: LOTUS Car Rental (+354 787 4444) [cite: 47, 48]</p>
+                <p>📅 今日: 2026/09/28 (Day 2)</p>
             </div>
-            <div class="temp-main" id="current-temp">2°C</div>
         </div>
-        <div id="storm-alert">⚠️ 極端天氣警報：預測有暴風雪，請避免長途開車！</div>
-        <div style="font-size: 0.8rem; margin-top: 10px; opacity: 0.7;">
-            降雨機率: <span id="rain-chance">10%</span> | 風速: <span id="wind-speed">5 m/s</span>
+        
+        <h3>快速工具</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <a href="https://www.road.is" class="btn-nav" style="text-align: center; background: #27ae60;">路況查詢 (Road.is)</a>
+            <a href="https://en.vedur.is/weather/forecasts/aurora/" class="btn-nav" style="text-align: center; background: #8e44ad;">極光預測</a>
         </div>
     </div>
 
-    <div class="day-scroller" id="day-nav">
+    <div id="page-itinerary" class="page">
+        <div id="day-selector" style="overflow-x: auto; white-space: nowrap; margin-bottom: 20px; padding-bottom: 5px;">
+            </div>
+        <div id="itinerary-content">
+            </div>
+    </div>
+
+    <div id="page-lang" class="page">
+        <h3>冰島語溝通助手 (點擊放大)</h3>
+        <details>
+            <summary>🍴 餐廳與點餐</summary>
+            <div class="phrase-item" onclick="showFocus('Geta fengið matseðilinn?','Can I have the menu?')">
+                <div><span>Geta fengið matseðilinn?</span><br><small>可以給我菜單嗎？</small></div>
+                <span>🔍</span>
+            </div>
+            <div class="phrase-item" onclick="showFocus('Reikninginn, takk','The check, please')">
+                <div><span>Reikninginn, takk</span><br><small>請結帳，謝謝</small></div>
+                <span>🔍</span>
+            </div>
+        </details>
+        <details>
+            <summary>🆘 緊急狀況</summary>
+            <div class="phrase-item" onclick="showFocus('Hjálp!','Help!')">
+                <div><span>Hjálp!</span><br><small>救命！</small></div>
+                <span>🔍</span>
+            </div>
+        </details>
+    </div>
+
+    <div id="page-tools" class="page">
+        <h3>旅遊記帳本 (ISK/TWD)</h3>
+        <div class="card-content" style="background: white; border-radius: 12px; padding: 15px;">
+            <input type="text" id="exp-name" placeholder="項目" style="width: 40%; padding: 8px;">
+            <input type="number" id="exp-amount" placeholder="金額" style="width: 30%; padding: 8px;">
+            <button onclick="addExpense()" style="width: 20%; padding: 8px;">新增</button>
+            <div id="expense-list" class="expense-list"></div>
+            <hr>
+            <strong>總計: $<span id="total-amount">0</span></strong>
+            <button onclick="clearExpenses()" style="background: none; border: none; color: var(--danger); float: right;">全部清除</button>
         </div>
 
-    <main class="content-area" id="main-content">
-        </main>
-
-    <div id="focus-modal" onclick="closeFocus()">
-        <span class="close-modal">&times;</span>
-        <div id="focus-text"></div>
-        <div id="focus-sub"></div>
-        <p style="margin-top: 50px; color: #666;">請看螢幕 (Vinsamlegast skoðaðu skjáinn)</p>
+        <h3 style="margin-top: 25px;">出發檢查清單</h3>
+        <div id="checklist-container">
+            </div>
     </div>
 
     <nav class="bottom-nav">
-        <button class="nav-item active" onclick="switchTab('itinerary', this)"><span>📅</span><br>行程</button>
-        <button class="nav-item" onclick="switchTab('lang', this)"><span>🗣️</span><br>語文</button>
-        <button class="nav-item" onclick="switchTab('expense', this)"><span>💰</span><br>記帳</button>
-        <button class="nav-item" onclick="switchTab('check', this)"><span>✅</span><br>準備</button>
+        <button class="nav-item active" onclick="switchPage('home')">🏠<br>儀表板</button>
+        <button class="nav-item" onclick="switchPage('itinerary')">📅<br>行程</button>
+        <button class="nav-item" onclick="switchPage('lang')">💬<br>溝通</button>
+        <button class="nav-item" onclick="switchPage('tools')">💰<br>工具</button>
     </nav>
 
     <script>
-        // --- 核心行程資料 [整理自來源 38-169] ---
+        // 行程資料庫 [cite: 38-169]
         const itineraryData = {
-            1: { date: "9/27", title: "出發冰島", items: [
-                { type: "must", name: "國際航班出發", loc: "TPE", note: "務必帶護照、機票與國際駕照 [cite: 42]", img: "https://images.unsplash.com/photo-1436491865332-7a61a109c0f3?auto=format&fit=crop&w=500" }
-            ]},
-            2: { date: "9/28", title: "抵達雷克雅維克", items: [
-                { type: "must", name: "Lotus Car Rental 取車", loc: "Keflavík Airport", note: "自助取車密碼: +354 7874444 [cite: 49]", img: "https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?auto=format&fit=crop&w=500" },
-                { type: "stay", name: "Skólavörðustígur Apartments", loc: "Skólavörðustígur 21A", note: "建議停 P2 藍 / P3 綠 [cite: 56]", img: "https://images.unsplash.com/photo-1551882547-ff43c63fedf3?auto=format&fit=crop&w=500" },
-                { type: "food", name: "Old Iceland (晚餐)", loc: "Old Iceland Restaurant", note: "推薦：羊肉湯 (Lamb Soup) [cite: 59]", img: "https://images.unsplash.com/photo-1514326640560-7d063ef2aed5?auto=format&fit=crop&w=500" }
-            ]},
-            3: { date: "9/29", title: "斯奈山半島", items: [
-                { type: "food", name: "Bakari Sandholt (早餐)", loc: "Sandholt", note: "熱門麵包店，推肉桂捲 [cite: 68]", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500" },
-                { type: "view", name: "教會山 Kirkjufell", loc: "Kirkjufell", note: "《權力遊戲》取景地 [cite: 71]", img: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=500" }
-            ]},
-            // ... 後續天數以此類推，範例展示前三天
-        };
-
-        // 模擬搜尋補齊其餘 13 天數據架構 (省略部分重複代碼)
-        for(let i=4; i<=13; i++) { if(!itineraryData[i]) itineraryData[i] = { date: `Day ${i}`, title: "冰島探索中", items: [] }; }
-
-        // --- 冰島語/英語溝通庫 [功能 13] ---
-        const phrases = {
-            "餐廳": [
-                { ice: "Gæti ég fengið matseðilinn?", en: "Can I have the menu?", zh: "可以給我菜單嗎？" },
-                { ice: "Reikninginn, takk.", en: "The bill, please.", zh: "請結帳。" },
-                { ice: "Hvar er salernið?", en: "Where is the bathroom?", zh: "洗手間在哪？" }
-            ],
-            "緊急": [
-                { ice: "Ég þarf hjálp!", en: "I need help!", zh: "我需要幫助！" },
-                { ice: "Hvar er næsta sjúkrahús?", en: "Where is the nearest hospital?", zh: "最近的醫院在哪？" }
-            ]
-        };
-
-        let currentDay = 2;
-        let currentTab = 'itinerary';
-
-        // --- 初始化 App ---
-        function init() {
-            renderDayNav();
-            renderContent();
-            checkStormMonitor(); // 啟動暴風雪監控
-            restoreStates(); // 恢復 LocalStorage 狀態 [功能 34]
-        }
-
-        function renderDayNav() {
-            const nav = document.getElementById('day-nav');
-            for (let i = 1; i <= 13; i++) {
-                const btn = document.createElement('button');
-                btn.className = `day-btn ${i === currentDay ? 'active' : ''}`;
-                btn.innerText = `D${i}`;
-                btn.onclick = () => {
-                    currentDay = i;
-                    document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderContent();
-                    window.scrollTo({ top: 0, behavior: 'smooth' }); // [功能 7]
-                };
-                nav.appendChild(btn);
+            2: {
+                title: "Day 2: 抵達雷克雅維克",
+                items: [
+                    { type: "🚗", name: "LOTUS 取車", desc: "密碼: +354 7874444", img: "https://images.unsplash.com/photo-1504541891213-1b1dfdadb739?auto=format&fit=crop&w=400", map: "LOTUS+Car+Rental+Keflavik" },
+                    { type: "🍴", name: "Old Iceland 餐廳", desc: "推薦: 羊肉湯 (預算 NT$1500-2000)", img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=400", map: "Old+Iceland+Restaurant" },
+                    { type: "📍", name: "哈爾格林姆教堂", desc: "必看地標與夜景", img: "https://images.unsplash.com/photo-1529963183134-61a90db47eaf?auto=format&fit=crop&w=400", map: "Hallgrimskirkja" }
+                ]
+            },
+            3: {
+                title: "Day 3: 斯奈山半島",
+                items: [
+                    { type: "🥐", name: "Sandholt 麵包店", desc: "7:30 營業，推薦肉桂捲", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400", map: "Sandholt" },
+                    { type: "📍", name: "教會山 Kirkjufell", desc: "白日夢冒險王拍攝地", img: "https://images.unsplash.com/photo-1476610182048-b716b8518aae?auto=format&fit=crop&w=400", map: "Kirkjufell" }
+                ]
+            },
+            11: {
+                title: "Day 11: 南岸瀑布線",
+                items: [
+                    { type: "🌊", name: "Skógafoss 斯科加瀑布", desc: "Mia's Country Van 炸魚薯條", img: "https://images.unsplash.com/photo-1476611317561-60117649dd94?auto=format&fit=crop&w=400", map: "Skogafoss" },
+                    { type: "🏖️", name: "Vik 黑沙灘", desc: "黑沙灘與玄武岩柱", img: "https://images.unsplash.com/photo-1504541891213-1b1dfdadb739?auto=format&fit=crop&w=400", map: "Reynisfjara+Beach" }
+                ]
             }
+            // ... 可依此類推補齊 13 天資料
+        };
+
+        // SPA 頁面切換 [cite: 5, 7]
+        function switchPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            window.scrollTo(0, 0);
         }
 
-        function renderContent() {
-            const container = document.getElementById('main-content');
-            container.innerHTML = '';
-
-            if (currentTab === 'itinerary') {
-                const data = itineraryData[currentDay];
-                const header = document.createElement('h2');
-                header.innerText = `Day ${currentDay}: ${data.title}`;
-                container.appendChild(header);
-
-                data.items.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <img src="${item.img}" class="card-img" alt="${item.name}">
-                        <div class="card-body">
-                            <span class="tag ${item.type === 'must' ? 'tag-must' : 'tag-food'}">${item.type.toUpperCase()}</span>
-                            <h3 style="margin: 10px 0;">${item.name}</h3>
-                            <p style="font-size: 0.9rem; color: #666;">${item.note}</p>
-                            <div class="btn-group">
-                                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.loc)}" class="action-btn btn-maps">📍 導航</a>
-                                <button class="action-btn" onclick="toggleOption('${item.name}')">🔄 A/B 備案</button>
-                            </div>
+        // 渲染行程 [cite: 18, 22]
+        function renderItinerary(day) {
+            const container = document.getElementById('itinerary-content');
+            const data = itineraryData[day] || { title: `Day ${day}: 行程規劃中`, items: [] };
+            
+            let html = `<h2>${data.title}</h2>`;
+            data.items.forEach(item => {
+                html += `
+                    <div class="card">
+                        <img src="${item.img}" alt="${item.name}">
+                        <div class="card-content">
+                            <span class="tag">${item.type}</span>
+                            <strong>${item.name}</strong>
+                            <p style="font-size:14px; color: #666;">${item.desc}</p>
+                            <a href="https://www.google.com/maps/search/?api=1&query=${item.map}" class="btn-nav">📍 開啟導航</a>
                         </div>
-                    `;
-                    container.appendChild(card);
-                });
-            } else if (currentTab === 'lang') {
-                container.innerHTML = '<h2>冰島語溝通輔助</h2>';
-                for (let cat in phrases) {
-                    const det = document.createElement('details');
-                    det.innerHTML = `<summary>${cat}</summary>`;
-                    phrases[cat].forEach(p => {
-                        const div = document.createElement('div');
-                        div.className = 'phrase-item';
-                        div.innerHTML = `<div><b>${p.ice}</b><br><small>${p.en}</small></div><span>👁️</span>`;
-                        div.onclick = () => showFocus(p.ice, p.zh);
-                        det.appendChild(div);
-                    });
-                    container.appendChild(det);
-                }
-            } else if (currentTab === 'expense') {
-                renderExpenseUI(container);
-            }
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
         }
 
-        // --- 功能模組 ---
+        // 全螢幕展示 [cite: 16]
+        function showFocus(is, en) {
+            const modal = document.getElementById('focus-modal');
+            document.getElementById('focus-text').innerHTML = `<h1>${is}</h1><p>${en}</p>`;
+            modal.style.display = 'flex';
+        }
 
-        // 暴風雪監控 [規格發想 2]
-        function checkStormMonitor() {
-            // 實際應對接 OpenWeatherMap API，此處模擬偵測
-            const isStorming = Math.random() > 0.7; 
-            if (isStorming) {
+        // 模擬暴風雪監控 
+        function checkWeather() {
+            // 實作中可介接 OpenWeather API
+            const windSpeed = 18; // 模擬數據
+            if (windSpeed > 15) {
                 document.getElementById('storm-alert').style.display = 'block';
             }
         }
 
-        // 全螢幕展示 [功能 16]
-        function showFocus(main, sub) {
-            const modal = document.getElementById('focus-modal');
-            document.getElementById('focus-text').innerText = main;
-            document.getElementById('focus-sub').innerText = sub;
-            modal.style.display = 'flex';
-        }
+        // 初始化
+        window.onload = () => {
+            const daySelector = document.getElementById('day-selector');
+            for(let i=1; i<=13; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = `Day ${i}`;
+                btn.className = 'btn-nav';
+                btn.style.marginRight = '5px';
+                btn.onclick = () => renderItinerary(i);
+                daySelector.appendChild(btn);
+            }
+            renderItinerary(2);
+            checkWeather();
+            loadExpenses();
+        };
 
-        function closeFocus() {
-            document.getElementById('focus-modal').style.display = 'none';
-        }
-
-        // 切換分頁 [功能 5]
-        function switchTab(tab, el) {
-            currentTab = tab;
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
-            renderContent();
-        }
-
-        // 記帳 CRUD 邏輯 [功能 28-31]
-        function renderExpenseUI(container) {
-            let expenses = JSON.parse(localStorage.getItem('trip_expenses') || '[]');
-            let total = expenses.reduce((sum, item) => sum + item.amount, 0);
-            
-            container.innerHTML = `
-                <h2>旅遊記帳 (ISK/TWD)</h2>
-                <div class="expense-container">
-                    <div style="font-size: 1.5rem; margin-bottom: 20px;">總計: $${total}</div>
-                    <input type="text" id="exp-name" placeholder="項目" style="width: 40%; padding: 8px;">
-                    <input type="number" id="exp-amt" placeholder="金額" style="width: 30%; padding: 8px;">
-                    <button onclick="addExpense()" style="padding: 8px;">新增</button>
-                    <div id="exp-list" style="margin-top: 20px;">
-                        ${expenses.map((e, i) => `<div class="expense-item"><span>${e.name}</span><span>$${e.amount}</span></div>`).join('')}
-                    </div>
-                    <button onclick="clearExpenses()" style="margin-top:20px; color: red; border:none; background:none;">全部清除</button>
-                </div>
-            `;
-        }
-
+        // 記帳本邏輯 [cite: 29, 30]
         function addExpense() {
             const name = document.getElementById('exp-name').value;
-            const amount = parseFloat(document.getElementById('exp-amt').value);
-            if (!name || !amount) return;
-            let expenses = JSON.parse(localStorage.getItem('trip_expenses') || '[]');
-            expenses.push({ name, amount });
-            localStorage.setItem('trip_expenses', JSON.stringify(expenses));
-            renderContent();
+            const amt = document.getElementById('exp-amount').value;
+            if(!name || !amt) return;
+            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            expenses.push({name, amt: parseFloat(amt)});
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            loadExpenses();
+        }
+
+        function loadExpenses() {
+            const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+            const list = document.getElementById('expense-list');
+            let total = 0;
+            list.innerHTML = expenses.map(e => {
+                total += e.amt;
+                return `<div class="expense-item"><span>${e.name}</span><span>$${e.amt}</span></div>`;
+            }).join('');
+            document.getElementById('total-amount').innerText = total;
         }
 
         function clearExpenses() {
-            if(confirm("確定清除所有紀錄？")) {
-                localStorage.removeItem('trip_expenses');
-                renderContent();
-            }
+            localStorage.removeItem('expenses');
+            loadExpenses();
         }
-
-        function restoreStates() {
-            // 可在此實作 Checkbox 狀態恢復 [功能 34]
-        }
-
-        window.onload = init;
     </script>
 </body>
 </html>
